@@ -2,7 +2,17 @@
 <div class="flex data-pick">
     <div class="flex-item-1 data-pick-canvas">
         <section class="data-pick-canvas-step">
-            <h4 class="h4">Step 1：import a image</h4>
+            <h4 class="h4">
+                Step 1：import a image
+                <el-popover placement="right-start"
+                    title="Cut image according to the red line before import"
+                    width="376"
+                    class="data-pick-canvas-example"
+                    trigger="hover">
+                    <img src="../assets/data-pick-example.jpg" class="data-pick-canvas-example-img">
+                    <span slot="reference" class="scon scon-info"></span>
+                </el-popover>
+            </h4>
             <canvas class="data-pick-canvas-el"
                 :class="{ 'drawed': hasDraw }"
                 ref="canvas"
@@ -47,20 +57,20 @@
             当前坐标: <span v-if="currentResult" class="data-pick-result-num">{{ currentResult.x + ' , ' + currentResult.y}}</span>
         </div>
         <template v-if="results.length">
-            <el-table ref="resultTable"
+            <el-table id="resultTable"
                 :data="results"
                 stripe
                 style="width: 100%"
-                height="800"
+                height="794"
                 class="data-pick-result-table">
-                <el-table-column prop="serial" label="序号" width="90">
+                <el-table-column align="center" prop="serial" label="序号" width="90">
                     <template slot-scope="scope">
                         <span>{{ scope.$index + 1 }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="x" label="X" width="120"></el-table-column>
-                <el-table-column prop="y" label="Y" width="120"></el-table-column>
-                <el-table-column prop="action" label="操作">
+                <el-table-column align="center" prop="x" label="X" width="120"></el-table-column>
+                <el-table-column align="center" prop="y" label="Y" width="120"></el-table-column>
+                <el-table-column align="center" prop="action" label="操作">
                     <template slot-scope="scope">
                         <el-button @click="deleteData(scope.$index)" type="danger" size="small">删除</el-button>
                     </template>
@@ -75,19 +85,8 @@
 </div>
 </template>
 <script>
-
-const tableToExcel = (function() {
-    let uri = 'data:application/vnd.ms-excel;base64,',
-            template = '<html><head><meta charset="UTF-8"></head><body><table>{table}</table></body></html>',
-            base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) },
-            format = function(s, c) {
-                return s.replace(/{(\w+)}/g,
-                        function(m, p) { return c[p]; }) }
-    return function(table, name) {
-        let ctx = {worksheet: name || 'Worksheet', table: table.innerHTML};
-        window.location.href = uri + base64(format(template, ctx));
-    }
-})();
+import XLSX from 'xlsx';
+import FileSaver from 'file-saver'
 
 export default {
     name: 'data-pick',
@@ -184,7 +183,10 @@ export default {
                 let result = e.target.result;   //返回的dataURL
                 _this.img.src = result;
                 _this.img.onload = function(){
-                    ctx.drawImage(_this.img, whiteSpace, whiteSpace, width, height);
+                    _this.ctx.clearRect(0, 0, width + whiteSpace * 2, height + whiteSpace * 2);
+                    _this.ctx.drawImage(_this.img, whiteSpace, whiteSpace, width, height);
+                    _this.results = [];
+                    _this.hasDraw = false;
                 }
             }
         },
@@ -235,59 +237,17 @@ export default {
             this.results = [];
         },
         exportData() {
-            let curTbl = this.$refs.resultTable;
-            if(this.getExplorer() =='ie') {
-                let oXL = new ActiveXObject("Excel.Application");
-                let oWB = oXL.Workbooks.Add();
-                let xlsheet = oWB.Worksheets(1);
-                let sel = document.body.createTextRange();
-                sel.moveToElementText(curTbl);
-                sel.select();
-                sel.execCommand("Copy");
-                xlsheet.Paste();
-                oXL.Visible = true;
+            let xlsxParam = { raw: true }; // 导出的内容只做解析，不进行格式转换
+            let wb = XLSX.utils.table_to_book(document.querySelector('#resultTable'), xlsxParam);
 
-                try {
-                    let fname = oXL.Application.GetSaveAsFilename("Excel.xls", "Excel Spreadsheets (*.xls), *.xls");
-                } catch (e) {
-                    print("Nested catch caught " + e);
-                } finally {
-                    oWB.SaveAs(fname);
-                    oWB.Close(savechanges = false);
-                    oXL.Quit();
-                    oXL = null;
-                    this.idTmr = window.setInterval("this.cleanup();", 1);
-                }
-            } else {
-                tableToExcel(curTbl);
+            /* get binary string as output */
+            let wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: true, type: 'array' });
+            try {
+                FileSaver.saveAs(new Blob([wbout], { type: 'application/octet-stream' }), 'data.xlsx');
+            } catch (e) {
+                console.log(e, wbout);
             }
-        },
-        getExplorer() {
-            let explorer = window.navigator.userAgent ;
-            //ie
-            if (explorer.indexOf("MSIE") >= 0) {
-                return 'ie';
-            }
-            //firefox
-            else if (explorer.indexOf("Firefox") >= 0) {
-                return 'Firefox';
-            }
-            //Chrome
-            else if(explorer.indexOf("Chrome") >= 0){
-                return 'Chrome';
-            }
-            //Opera
-            else if(explorer.indexOf("Opera") >= 0){
-                return 'Opera';
-            }
-            //Safari
-            else if(explorer.indexOf("Safari") >= 0){
-                return 'Safari';
-            }
-        },
-        cleanup() {
-            window.clearInterval(this.idTmr);
-            CollectGarbage();
+            return wbout;
         }
     }
 };
@@ -309,6 +269,15 @@ export default {
         border-color: #ddd;
         &-step + &-step {
             margin-top: 20px;
+        }
+        &-example {
+            &-img {
+                width: 100%;
+            }
+            .scon-info {
+                color: @colorTextAid;
+                cursor: pointer;
+            }
         }
         &-el {
             border: @borderBase;

@@ -31,6 +31,7 @@ html, body {
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: @colorText;
-    padding-top: 52px;
+    padding-top: 46px;
+    line-height: 1;
 }
 </style>

@@ -39,6 +39,7 @@ export default {
     &-link-con {
         flex: 1;
         flex-direction: row-reverse;
+        margin-right: 80px;
     }
     &-link {
         color: fade(@white, 70);
