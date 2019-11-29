@@ -28,22 +28,22 @@
             <h4 class="h4">Step2：input coordinate</h4>
             <el-form label-width="100px">
                 <el-form-item label="x轴起始坐标">
-                    <el-input type="number" v-model="xp.start"></el-input>
+                    <el-input type="number" v-model="xp.start" placeholder="input here"></el-input>
                 </el-form-item>
                 <el-form-item label="x轴结束坐标">
-                    <el-input type="number" v-model="xp.end"></el-input>
+                    <el-input type="number" v-model="xp.end" placeholder="input here"></el-input>
                 </el-form-item>
                 <el-form-item label="x轴刻度">
-                    <el-input type="number" v-model="xp.scale"></el-input>
+                    <el-input type="number" v-model="xp.scale" placeholder="input here"></el-input>
                 </el-form-item>
                 <el-form-item label="y轴起始坐标">
-                    <el-input type="number" v-model="yp.start"></el-input>
+                    <el-input type="number" v-model="yp.start" placeholder="input here"></el-input>
                 </el-form-item>
                 <el-form-item label="y轴结束坐标">
-                    <el-input type="number" v-model="yp.end"></el-input>
+                    <el-input type="number" v-model="yp.end" placeholder="input here"></el-input>
                 </el-form-item>
                 <el-form-item label="y轴刻度">
-                    <el-input type="number" v-model="yp.scale"></el-input>
+                    <el-input type="number" v-model="yp.scale" placeholder="input here"></el-input>
                 </el-form-item>
                 <div class="btn_box">
                     <el-button type="success" @click="drawGrid">增加栅格</el-button>
@@ -95,14 +95,14 @@ export default {
             canvas: null,
             ctx: null,
             xp: {
-                start: 0,
-                end: 7.5,
-                scale: 0.5
+                start: undefined,
+                end: undefined,
+                scale: undefined
             },
             yp: {
-                start: 0,
-                end: 15,
-                scale: 1
+                start: undefined,
+                end: undefined,
+                scale: undefined
             },
             img: new Image(),
             width: 400,
